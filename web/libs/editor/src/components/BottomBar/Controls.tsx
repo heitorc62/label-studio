@@ -66,6 +66,54 @@ export const Controls = controlsInjector<{ annotation: MSTAnnotation }>(
     const disabled = !annotationEditable || store.isSubmitting || historySelected || isInProgress;
     const submitDisabled = store.hasInterface("annotations:deny-empty") && results.length === 0;
 
+    function handleTaskPolling() {
+      console.log("Button clicked");
+    
+      const searchParams = new URLSearchParams(window.location.search);
+      const taskId = searchParams.get('task');
+      console.log('Task ID:', taskId);
+    
+      if (taskId) {
+        console.log("Starting polling for task status");
+        const pollingInterval = 2000;
+        const maxRetries = 10; // Set a max retry limit
+        let retryCount = 0;
+    
+        const pollTaskStatus = () => {
+          fetch(`http://localhost:5000/task_status/${taskId}`)
+            .then((response) => {
+              console.log('Response:', response);
+              return response.json();
+            })
+            .then((data) => {
+              console.log('Task status:', data);
+              if (data.task_status === 'COMPLETED') {
+                window.location.href = data.next_task;
+              } else if (retryCount < maxRetries) {
+                retryCount++;
+                setTimeout(pollTaskStatus, pollingInterval);
+              } else {
+                console.error('Max polling retries reached.');
+              }
+            })
+            .catch((error) => {
+              console.error('Error checking task status:', error);
+              if (retryCount < maxRetries) {
+                retryCount++;
+                setTimeout(pollTaskStatus, pollingInterval);
+              } else {
+                console.error('Max polling retries reached.');
+              }
+            });
+        };
+    
+        pollTaskStatus();
+      } else {
+        console.error('Task ID not found');
+      }
+    }
+    
+  
     const buttonHandler = useCallback(
       async (e: React.MouseEvent, callback: () => any, tooltipMessage: string) => {
         const { addedCommentThisSession, currentComment, commentFormSubmit } = store.commentStore;
@@ -192,6 +240,7 @@ export const Controls = controlsInjector<{ annotation: MSTAnnotation }>(
                   selected?.submissionInProgress();
                   await store.commentStore.commentFormSubmit();
                   store.submitAnnotation();
+                  handleTaskPolling();
                 }}
                 icon={
                   useExitOption ? (
@@ -233,6 +282,7 @@ export const Controls = controlsInjector<{ annotation: MSTAnnotation }>(
                 selected?.submissionInProgress();
                 await store.commentStore.commentFormSubmit();
                 store.updateAnnotation();
+                handleTaskPolling();
               }}
               icon={
                 useExitOption ? (
