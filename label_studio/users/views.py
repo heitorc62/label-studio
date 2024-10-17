@@ -1,6 +1,6 @@
 """This file and its contents are licensed under the Apache License 2.0. Please see the included NOTICE for copyright information and LICENSE for a copy of the license.
 """
-import logging
+import logging, os
 
 from core.feature_flags import flag_set
 from core.middleware import enforce_csrf_checks
@@ -121,6 +121,22 @@ def user_login(request):
             user.active_organization_id = org_pk
             user.save(update_fields=['active_organization'])
             return redirect(next_page)
+        
+    # AUTO-LOGIN ATTEMPT
+    # Try auto-login with credentials from environment variables
+    auto_email = os.getenv('LABEL_STUDIO_USERNAME')
+    auto_password = os.getenv('LABEL_STUDIO_PASSWORD')
+
+    if auto_email and auto_password:
+        # Authenticate the user using the auto-login credentials
+        auto_user = auth.authenticate(email=auto_email, password=auto_password)
+        if auto_user is not None:
+            # Log in the user
+            login(request, auto_user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect(next_page)
+        else:
+            # Optional: Handle the case where auto-login credentials are invalid
+            print("Auto-login failed. Invalid credentials in environment variables.")
 
     if flag_set('fflag_feat_front_lsdv_e_297_increase_oss_to_enterprise_adoption_short'):
         return render(request, 'users/new-ui/user_login.html', {'form': form, 'next': next_page})
