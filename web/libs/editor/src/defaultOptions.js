@@ -6,7 +6,7 @@ export default {
     "skip",
     "controls",
     "infobar",
-    "topbar",
+    // "topbar",
     "instruction",
     "side-column",
     "annotations:history",

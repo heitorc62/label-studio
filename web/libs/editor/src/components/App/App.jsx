@@ -249,7 +249,7 @@ class App extends Component {
             </>
           )}
 
-          {isDefined(store) && store.hasInterface("topbar") && <TopBar store={store} />}
+          {/* {isDefined(store) && store.hasInterface("topbar") && <TopBar store={store} />} */}
           <Block
             name="wrapper"
             mod={{
