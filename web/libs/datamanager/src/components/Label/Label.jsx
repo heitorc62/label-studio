@@ -103,7 +103,8 @@ export const Labeling = injector(
         )}
 
         <Elem name="content">
-          {isExplorerMode && (
+          {/* Left Panel on labeling */}
+          {/* {isExplorerMode && (
             <Elem name="table">
               <Elem
                 tag={Resizer}
@@ -119,7 +120,7 @@ export const Labeling = injector(
                 <DataView />
               </Elem>
             </Elem>
-          )}
+          )} */}
 
           <Elem name="lsf-wrapper" mod={{ mode: isExplorerMode ? "explorer" : "labeling" }}>
             {loading && <Elem name="waiting" mod={{ animated: true }} />}
